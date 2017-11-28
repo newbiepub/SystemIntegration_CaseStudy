@@ -1,0 +1,52 @@
+.logo {
+    display: block;
+}
+
+.logo h1 {
+    font-size: 200px;
+    color: #FF7A00;
+    text-align: center;
+    margin-bottom: 1px;
+    text-shadow: 4px 4px 1px white;
+}
+
+.logo p {
+    color: #B1A18D;
+    font-size: 20px;
+    margin-top: 1px;
+    text-align: center;
+}
+
+.sub {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.sub a {
+    color: #ff7a00;
+    text-decoration: none;
+    padding: 5px;
+    font-size: 13px;
+    font-family: arial, serif;
+    font-weight: bold;
+}
+
+.wrapper-container {
+    display: flex;
+    flex-grow: 1;
+    justify-content: center;
+    align-items: center;
+}
+
+.wrapper-not-found {
+    background-color: #DAD6CC;
+    font-family: Capriola;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+}

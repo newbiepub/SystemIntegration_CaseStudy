@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title> {{title}} </title>
+    <!-- Bootstrap CSS -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <!-- Base -->
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <link rel="stylesheet" href="/static/css/styles-responsive.css">
+    <link rel="stylesheet" href="/static/css/notFound.css">
+    <link rel="stylesheet" href="/static/css/font.css" type="text/css"/>
+    <link href="/static/css/font-awesome.css" rel="stylesheet">
+    <!-- Font Google -->
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Capriola">
+    <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Raleway:100,200,300,400,500,600,700,800,900">
+    <link href="//fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i,800,800i&amp;subset=cyrillic,cyrillic-ext,greek,greek-ext,latin-ext,vietnamese" rel="stylesheet">
+    <link href="//fonts.googleapis.com/css?family=Dosis:200,300,400,500,600,700,800&amp;subset=latin-ext" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
+    <link href='//fonts.googleapis.com/css?family=Roboto:400,100,100italic,300,300italic,400italic,500,500italic,700,700italic,900,900italic'
+          rel='stylesheet' type='text/css'>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"/>
+    {{{data}}}
+</head>
+<body>
+<div id="root">{{{content}}}</div>
+<input value="{{csrfToken}}" id="_csrf"type="hidden"/>
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="/static/js/jquery.dcjqaccordion.2.7.js"></script>
+<script src="/static/js/jquery.slimscroll.js"></script>
+<script src="/static/js/jquery.nicescroll.js"></script>
+<script src="/static/js/jquery.scrollTo.js"></script>
+<!-- Latest compiled and minified JavaScript -->
+{{{data}}}
+<script type="text/javascript" src="/static/bundle.js"></script>
+</body>
+</html>
