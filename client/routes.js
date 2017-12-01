@@ -2,8 +2,6 @@ import App from "./container/app";
 import NotFound from "./component/NotFound/notFound";
 import AdminLogin from "./container/admin/login/login";
 import AdminHome from "./container/admin/home/home";
-import AdminTable from "./container/admin/AdminTable/adminTable";
-import DataTable from "./container/admin/dataTable/dataTable";
 import Redirector from "./component/redirector/redirector";
 import Income from "./container/admin/reporting/income";
 import Vacation from "./container/admin/reporting/vacation";
@@ -15,6 +13,10 @@ import BirthDay from "./container/admin/notification/birthday";
 import HireDate from "./container/admin/notification/hireDate";
 import ChangeBenefit from "./container/admin/notification/benefit";
 import AccumulateVacation from "./container/admin/notification/accumulated";
+import Employee from "./container/admin/employee/employee";
+import AllEmployee from "./container/admin/employee/allEmployee";
+import CreateEmployee from "./container/admin/employee/createEmployee";
+import EditEmployee from "./container/admin/employee/editEmployee";
 
 const routes = [
     {
@@ -74,6 +76,24 @@ const routes = [
                     {
                         path: "*",
                         component: Redirector
+                    }
+                ]
+            },
+            {
+                path: '/employee',
+                component: Employee,
+                routes: [
+                    {
+                        path: "/employee/update/:id",
+                        component: EditEmployee
+                    },
+                    {
+                        path: "/employee/create",
+                        component: CreateEmployee
+                    },
+                    {
+                        path: "/employee",
+                        component: AllEmployee
                     }
                 ]
             },

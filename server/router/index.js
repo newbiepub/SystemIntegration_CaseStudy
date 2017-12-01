@@ -41,6 +41,7 @@ module.exports = (app) => {
     app.use("/setting", checkAuth());
     app.use("/login", login);
     app.use("/notification", checkAuth());
+    app.use('/employee', checkAuth());
     app.use('/api', api);
     app.use('/logout', logout);
     app.get("*", (req, res, next) => {

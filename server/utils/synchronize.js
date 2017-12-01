@@ -72,7 +72,8 @@ export async function sync() {
                     pay_rates_id_pay_rates: getEmployee['Pay Rates_idPay Rates'],
                     vacation_days: getEmployee['Vacation Days'],
                     paid_to_date: getEmployee['Paid To Date'],
-                    paid_last_year: getEmployee['Paid Last Year']
+                    paid_last_year: getEmployee['Paid Last Year'],
+                    birthday: getEmployee['Birthday']
                 }, {upsert: true, multi: true}).exec();
             }
         }

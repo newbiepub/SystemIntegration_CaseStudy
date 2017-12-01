@@ -75,7 +75,8 @@ const modelConfigs = [
             pay_rates_id_pay_rates: {type: Number},
             vacation_days: {type: Number},
             paid_to_date: {type: Number},
-            paid_last_year: {type: Number}
+            paid_last_year: {type: Number},
+            birthday: {type: Date}
         },
         schemaName: "employee",
         collection: "employee"

@@ -88,27 +88,139 @@ api.get("/change/benefit", async (req, res, next) => {
     }
 });
 
-api.get("/employee/count", async (req, res, next) => {
+api.get("/payrates", async (req, res, next) => {
    try {
-       let employeeCount = await app.models.Employee.find({}).count().exec();
-       res.end(JSON.stringify({employeeCount}));
-   } catch (e) {
+       let payRate = await app.models.PayRates.find({}).exec();
+       res.end(JSON.stringify(payRate));
+   }  catch(e) {
        console.log(e);
        res.statusCode = 500;
-       res.end(JSON.stringify({error: {}}))
+       res.end(JSON.stringify({error: {message: "Error"}}));
    }
 });
 
-api.get("/employee/totalIncome", async (req, res, next) => {
+api.get('/benefit/plans', async (req, res, next) => {
+   try {
+        let plans = await app.models.BenefitPlan.find({}).exec();
+        res.end(JSON.stringify(plans));
+   } catch(e) {
+       console.log(e);
+       res.statusCode = 500;
+       res.end(JSON.stringify({error: {message: "Error"}}));
+   }
+});
 
+api.get('/employee', async (req, res, next) => {
+    try {
+        let employee = await app.models.Employee.find({}).exec();
+        res.end(JSON.stringify(employee));
+    } catch(e) {
+        console.log(e);
+        res.statusCode = 500;
+        res.end(JSON.stringify({error: {message: 'Error'}}))
+    }
+});
+
+api.get("/employee/count", async (req, res, next) => {
+    try {
+        let employeeCount = await app.models.Employee.find({}).count().exec();
+        res.end(JSON.stringify({employeeCount}));
+    } catch (e) {
+        console.log(e);
+        res.statusCode = 500;
+        res.end(JSON.stringify({error: {}}))
+    }
+});
+
+api.get("/employee/totalIncome", async (req, res, next) => {
+    try {
+        let employees = await app.models.Employee.find({}).exec(),
+            result = [];
+
+        for (let employee of employees) {
+            employee = employee.toJSON(); // Convert Cursor to JSON
+            let jobHistory = await app.models.JobHistory.findOne({hr_employee_id: employee.hr_employee_id}).exec();
+            if (jobHistory) {
+                jobHistory = jobHistory.toJSON(); // Convert Cursor to JSON
+                let end_date = new Date(jobHistory.end_date).getTime(),
+                    start_date = new Date(jobHistory.start_date).getTime(),
+                    work_days = Math.floor((end_date - start_date) / (1000 * 3600 * 24)),
+                    totalIncome = (jobHistory.salary_type * ((work_days) - employee.vacation_days - 4));
+                employee.totalIncome = totalIncome;
+                result.push(employee);
+            }
+        }
+        res.end(JSON.stringify({employee: result}));
+    } catch (e) {
+        console.log(e);
+        res.statusCode = 500;
+        res.end(JSON.stringify({error: {message: "Error"}}));
+    }
 });
 
 api.get("/employee/totalVacation", async (req, res, next) => {
-
+    try {
+        let employees = await app.models.Employee.find({}).exec(),
+            result = [];
+        for (let employee of employees) {
+            employee = employee.toJSON();
+            let jobHistory = await app.models.JobHistory.findOne({hr_employee_id: employee.hr_employee_id}).exec(),
+                employment = await app.models.Employment.findOne({hr_employee_id: employee.hr_employee_id}).exec();
+            if(jobHistory && employment) {
+                let totalVacation = (employment.last_review_date * 24 - jobHistory.hour_per_week) / 24;
+                employee.totalVacation = totalVacation;
+                result.push(employee);
+            }
+        }
+        res.end(JSON.stringify(result));
+    } catch (e) {
+        console.log(e);
+        res.statusCode = 500;
+        res.end(JSON.stringify({error: {message: "Error"}}));
+    }
 });
 
 api.get("/employee/averageBenefit", async (req, res, next) => {
+    try {
+        let employees = await app.models.Employee.find({}).exec(),
+            result = [];
 
+        for(let employee of employees) {
+            employee = employee.toJSON();
+            let benefitPlans = await app.models.BenefitPlan.findOne({benefit_plan_id: employee.benefit_plan}).exec();
+            employee.averageBenefit = (benefitPlans.percent_copay / benefitPlans.deductible) *  employee.shareholder_status;
+            result.push(employee);
+        }
+        res.end(JSON.stringify(result));
+    } catch(e) {
+        console.log(e);
+        res.statusCode = 500;
+        res.end(JSON.stringify({error: {message: "Error"}}));
+    }
+});
+
+api.get("/employee/detail/:id", async (req, res, next) => {
+    try {
+        let employee = await app.models.Employee.findOne({_id: req.params.id}).exec();
+        if(employee) {
+            employee = employee.toJSON();
+            res.end(JSON.stringify(employee));
+        } else {
+            res.end(JSON.stringify({}));
+        }
+    } catch(e) {
+        console.log(e);
+        res.statusCode = 500;
+        res.end(JSON.stringify({error: {message: "Error"}}));
+    }
+});
+
+api.post("/employee/update", async (req, res, next) => {
+    try {
+
+    } catch (e) {
+
+    }
 });
 
 export default api;

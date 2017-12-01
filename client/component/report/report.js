@@ -1,5 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
+import DataTable from "../../container/admin/dataTable/dataTable";
 
 class Report extends React.Component {
     constructor(props) {
@@ -37,14 +38,7 @@ class Report extends React.Component {
                                     </div>
                                 </div>
                             </form>
-                            <div className="form-group">
-                                <label style={{textAlign: "right"}} className="col-sm-3 control-label col-lg-3">
-                                    Kết Quả
-                                </label>
-                                <div className="col-lg-6">
-                                    <input type="text" className="form-control" disabled={true} value={0}/>
-                                </div>
-                            </div>
+                            <DataTable title={this.props.title} field={["first_name", "last_name", "SSN", "paid_to_date", "paid_last_year", "totalIncome"]}/>
                         </div>
                     </section>
                 </div>

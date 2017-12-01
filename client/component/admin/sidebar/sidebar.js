@@ -41,6 +41,7 @@ class AdminSidebar extends React.Component {
 
                             <AdminSidebarNotification {...this.props}/>
                             <AdminSidebarReport {...this.props}/>
+                            <AdminSideBarEmployee {...this.props}/>
                         </ul>
                     </div>
                 </div>
@@ -88,6 +89,27 @@ class AdminSidebarReport extends React.Component {
                     <li><Link to="/report/income">Tổng thu nhập</Link></li>
                     <li><Link to="/report/vacation">Tổng số ngày nghỉ</Link></li>
                     <li><Link to="/report/benefit">Lợi nhuận trung bình</Link></li>
+                </ul>
+            </li>
+        )
+    }
+}
+
+class AdminSideBarEmployee extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
+    render() {
+        return (
+            <li className="sub-menu">
+                <a href="javascript:;">
+                    <i className="fa fa-user"></i>
+                    <span>Nhân Viên</span>
+                </a>
+                <ul className="sub" style={{display: "block"}}>
+                    <li><Link to="/employee">Danh Sách Nhân Viên</Link></li>
+                    <li><Link to="/employee/create">Thêm Nhân Viên</Link></li>
                 </ul>
             </li>
         )
