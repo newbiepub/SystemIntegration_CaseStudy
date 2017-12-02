@@ -181,10 +181,7 @@ class AdminHeaderNotification extends React.Component {
     }
 
     render() {
-        return (
-            <div className="nav notify-row" id="top_menu">
-                <ul className="nav top-menu">
-                    <li id="header_notification_bar" className="dropdown">
+        /*{/!*<li id="header_notification_bar" className="dropdown">
                         <a data-toggle="dropdown" className="dropdown-toggle" href="#">
 
                             <i className="fa fa-bell-o"></i>
@@ -194,7 +191,11 @@ class AdminHeaderNotification extends React.Component {
                                 <p>Notifications</p>
                             </li>
                         </ul>
-                    </li>
+                    </li>*!/}*/
+        return (
+            <div className="nav notify-row" id="top_menu">
+                <ul className="nav top-menu">
+
                 </ul>
             </div>
         )

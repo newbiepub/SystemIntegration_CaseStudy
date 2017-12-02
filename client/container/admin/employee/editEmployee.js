@@ -29,7 +29,8 @@ class EditEmployee extends React.Component {
             pay_rates_id_pay_rates: 1,
             vacation_days: 0,
             paid_to_date: 0,
-            paid_last_year: 0
+            paid_last_year: 0,
+            isUpdate: false
         }
     }
 
@@ -93,8 +94,35 @@ class EditEmployee extends React.Component {
         }
     }
 
-    onSubmit() {
-
+    onSubmit(e) {
+        e.preventDefault();
+        this.setState({isUpdate: true});
+        const self = this;
+        let _csrf = $("#_csrf").val();
+        (() => {
+            $.ajax({
+                url: "http://localhost:3000/api/employee/update",
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                data: JSON.stringify({_csrf, ..._.omit(self.state, ["options1", "options2", "isUpdate"])}),
+                dataType: "json",
+                success (data) {
+                    if(data.success) {
+                        self.props.history.goBack();
+                    } else {
+                        alert("Update Failed");
+                    }
+                    self.setState({isUpdate: false})
+                },
+                error(xhr, statusCode, error) {
+                    console.log(xhr);
+                    alert(error);
+                    self.setState({isUpdate: false})
+                }
+            })
+        })();
     }
 
     render() {
@@ -389,10 +417,10 @@ class EditEmployee extends React.Component {
                                 </div>
                                 <div className="row">
                                     <div className="col-lg-offset-2 col-lg-2">
-                                        <button type="submit" className="btn btn-primary">Cập Nhật</button>
+                                        <button disabled={this.state.isUpdate} type="submit" className="btn btn-primary">Cập Nhật</button>
                                     </div>
                                     <div className="col-lg-2">
-                                        <button onClick={(e) => {
+                                        <button disabled={this.state.isUpdate} onClick={(e) => {
                                             this.props.history.goBack();
                                         }} type="button" className="btn btn-default">Huỷ</button>
                                     </div>

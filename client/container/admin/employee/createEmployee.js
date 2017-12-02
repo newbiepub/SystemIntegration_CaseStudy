@@ -1,5 +1,6 @@
 import React from "react";
 import AutoForm from "../../../component/autoform/autoform";
+import * as _ from "lodash";
 
 class CreateEmployee extends React.Component {
     constructor(props) {
@@ -49,16 +50,16 @@ class CreateEmployee extends React.Component {
         }
     }
 
-    renderOptions () {
+    renderOptions() {
         const self = this;
         (() => {
             $.ajax({
                 url: "http://localhost:3000/api/payrates",
                 method: "GET",
                 dataType: "json",
-                success (data) {
-                    let { autoForm } = self.refs;
-                    if(autoForm) {
+                success(data) {
+                    let {autoForm} = self.refs;
+                    if (autoForm) {
                         let options1 = data.map((item, index) => ({
                             name: item.pay_rates_name,
                             value: parseInt(item.id_pay_rates)
@@ -77,9 +78,9 @@ class CreateEmployee extends React.Component {
                 url: "http://localhost:3000/api/benefit/plans",
                 method: "GET",
                 dataType: "json",
-                success (data) {
-                    let { autoForm } = self.refs;
-                    if(autoForm) {
+                success(data) {
+                    let {autoForm} = self.refs;
+                    if (autoForm) {
                         let options2 = data.map((item, index) => ({
                             name: item.plan_name,
                             value: parseInt(item.benefit_plan_id)
@@ -95,13 +96,36 @@ class CreateEmployee extends React.Component {
         })();
     }
 
-    onCancel (e) {
+    onCancel(e) {
         e.preventDefault();
         this.props.history.goBack();
     }
 
     onSubmit(e, data) {
-        console.log(data);
+        const self = this;
+        let _csrf = $("#_csrf").val();
+        (() => {
+            $.ajax({
+                url: "http://localhost:3000/api/employee/create",
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                data: JSON.stringify({_csrf, ..._.omit(data, ["options1", "options2"])}),
+                dataType: "json",
+                success(data) {
+                    if(data.success) {
+                        self.props.history.replace("/employee");
+                    } else {
+                        alert("Insert Failed");
+                    }
+                },
+                error(xhr, statusCode, error) {
+                  console.log(xhr);
+                  alert(error);
+                }
+            })
+        })()
     }
 
     render() {

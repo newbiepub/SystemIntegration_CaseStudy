@@ -40,7 +40,7 @@ class AdminHome extends React.Component {
     render() {
         return (
             <section className="wrapper">
-                <div className="market-updates">
+                <div onClick={() => this.props.history.push("/employee")} className="market-updates">
                     <div className="col-md-3 market-update-gd">
                         <div className="market-update-block clr-block-1">
                             <div className="col-md-4 market-update-right">

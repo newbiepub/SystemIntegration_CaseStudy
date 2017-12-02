@@ -2,6 +2,7 @@ import express from "express";
 import {sync} from "../utils/synchronize";
 import app from "../index";
 import HR from "../db/hr";
+import payroll from "../db/payroll";
 import * as _ from "lodash";
 
 const api = express.Router();
@@ -89,31 +90,90 @@ api.get("/change/benefit", async (req, res, next) => {
 });
 
 api.get("/payrates", async (req, res, next) => {
-   try {
-       let payRate = await app.models.PayRates.find({}).exec();
-       res.end(JSON.stringify(payRate));
-   }  catch(e) {
-       console.log(e);
-       res.statusCode = 500;
-       res.end(JSON.stringify({error: {message: "Error"}}));
-   }
+    try {
+        let payRate = await app.models.PayRates.find({}).exec();
+        res.end(JSON.stringify(payRate));
+    } catch (e) {
+        console.log(e);
+        res.statusCode = 500;
+        res.end(JSON.stringify({error: {message: "Error"}}));
+    }
 });
 
 api.get('/benefit/plans', async (req, res, next) => {
-   try {
+    try {
         let plans = await app.models.BenefitPlan.find({}).exec();
         res.end(JSON.stringify(plans));
-   } catch(e) {
-       console.log(e);
-       res.statusCode = 500;
-       res.end(JSON.stringify({error: {message: "Error"}}));
-   }
+    } catch (e) {
+        console.log(e);
+        res.statusCode = 500;
+        res.end(JSON.stringify({error: {message: "Error"}}));
+    }
 });
+
+RegExp.escape = function (s) {
+    return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+};
 
 api.get('/employee', async (req, res, next) => {
     try {
-        let employee = await app.models.Employee.find({}).exec();
+
+        let filter = {};
+        if(req.query.filter === "shareholder") {
+            filter = {shareholder_status: true}
+        } else if (req.query.filter === "employee") {
+            filter = {shareholder_status: false}
+        }
+        if(req.query.search) {
+            Object.assign(filter, {$or: [
+                {first_name: {$regex: RegExp.escape(req.query.search), $options: 'i'}},
+                {last_name: {$regex: RegExp.escape(req.query.search), $options: 'i'}},
+                {middle_initial: {$regex: RegExp.escape(req.query.search), $options: 'i'}},
+                {city: {$regex: RegExp.escape(req.query.search), $options: 'i'}}
+                ]
+            })
+        }
+        let employee = await app.models.Employee.find(filter).exec();
         res.end(JSON.stringify(employee));
+    } catch (e) {
+        console.log(e);
+        res.statusCode = 500;
+        res.end(JSON.stringify({error: {message: 'Error'}}))
+    }
+});
+
+api.get("/employee/birthday", async (req, res, next) => {
+    try {
+        let employee = await app.models.Employee.find({}).exec(),
+            result = [];
+        for(let item of employee) {
+            let birthday = item.birthday;
+            if(birthday.getMonth() === (new Date()).getMonth() && birthday.getFullYear() === (new Date()).getFullYear()) {
+                result.push(item);
+            }
+        }
+        res.end(JSON.stringify(result));
+    } catch(e) {
+        console.log(e);
+        res.statusCode = 500;
+        res.end(JSON.stringify({error: {message: 'Error'}}))
+    }
+});
+
+api.get('/employee/accumulated/vacation', async (req, res, next) => {
+    try {
+        let employees = await app.models.Employee.find({}).exec(),
+            result = [];
+        for(let employee of employees) {
+            employee = employee.toJSON();
+            if(employee.shareholder_status) {
+                employee.accumulated_vacations = employee.vacation_days < 15 ? 15 - employee.vacation_days : 0;
+            } else {
+                employee.accumulated_vacations = employee.vacation_days < 12 ? 12 - employee.vacation_days : 0;
+            }
+            result.push(employee);
+        }
+        res.end(JSON.stringify(result));
     } catch(e) {
         console.log(e);
         res.statusCode = 500;
@@ -134,23 +194,22 @@ api.get("/employee/count", async (req, res, next) => {
 
 api.get("/employee/totalIncome", async (req, res, next) => {
     try {
-        let employees = await app.models.Employee.find({}).exec(),
+        let filter = {};
+        if(req.query.filter === "shareholder") {
+            filter = {shareholder_status: true}
+        } else if (req.query.filter === "employee") {
+            filter = {shareholder_status: false}
+        }
+
+        let employees = await app.models.Employee.find(filter).exec(),
             result = [];
 
         for (let employee of employees) {
             employee = employee.toJSON(); // Convert Cursor to JSON
-            let jobHistory = await app.models.JobHistory.findOne({hr_employee_id: employee.hr_employee_id}).exec();
-            if (jobHistory) {
-                jobHistory = jobHistory.toJSON(); // Convert Cursor to JSON
-                let end_date = new Date(jobHistory.end_date).getTime(),
-                    start_date = new Date(jobHistory.start_date).getTime(),
-                    work_days = Math.floor((end_date - start_date) / (1000 * 3600 * 24)),
-                    totalIncome = (jobHistory.salary_type * ((work_days) - employee.vacation_days - 4));
-                employee.totalIncome = totalIncome;
-                result.push(employee);
-            }
+            employee.totalIncome = parseInt(employee.paid_to_date) + parseInt(employee.paid_last_year);
+            result.push(employee);
         }
-        res.end(JSON.stringify({employee: result}));
+        res.end(JSON.stringify(result));
     } catch (e) {
         console.log(e);
         res.statusCode = 500;
@@ -160,19 +219,14 @@ api.get("/employee/totalIncome", async (req, res, next) => {
 
 api.get("/employee/totalVacation", async (req, res, next) => {
     try {
-        let employees = await app.models.Employee.find({}).exec(),
-            result = [];
-        for (let employee of employees) {
-            employee = employee.toJSON();
-            let jobHistory = await app.models.JobHistory.findOne({hr_employee_id: employee.hr_employee_id}).exec(),
-                employment = await app.models.Employment.findOne({hr_employee_id: employee.hr_employee_id}).exec();
-            if(jobHistory && employment) {
-                let totalVacation = (employment.last_review_date * 24 - jobHistory.hour_per_week) / 24;
-                employee.totalVacation = totalVacation;
-                result.push(employee);
-            }
+        let filter = {};
+        if(req.query.filter === "shareholder") {
+            filter = {shareholder_status: true}
+        } else if (req.query.filter === "employee") {
+            filter = {shareholder_status: false}
         }
-        res.end(JSON.stringify(result));
+        let employees = await app.models.Employee.find(filter).exec();
+        res.end(JSON.stringify(employees));
     } catch (e) {
         console.log(e);
         res.statusCode = 500;
@@ -182,17 +236,28 @@ api.get("/employee/totalVacation", async (req, res, next) => {
 
 api.get("/employee/averageBenefit", async (req, res, next) => {
     try {
-        let employees = await app.models.Employee.find({}).exec(),
+        let filter = {};
+        if(req.query.filter === "shareholder") {
+            filter = {shareholder_status: true}
+        } else if (req.query.filter === "employee") {
+            filter = {shareholder_status: false}
+        }
+        let employees = await app.models.Employee.find(filter).exec(),
             result = [];
 
-        for(let employee of employees) {
+        for (let employee of employees) {
             employee = employee.toJSON();
-            let benefitPlans = await app.models.BenefitPlan.findOne({benefit_plan_id: employee.benefit_plan}).exec();
-            employee.averageBenefit = (benefitPlans.percent_copay / benefitPlans.deductible) *  employee.shareholder_status;
+            let benefitPlans = await app.models.BenefitPlan.findOne({benefit_plan_id: employee.benefit_plan}).exec(),
+                totalIncome = parseInt(employee.paid_to_date) + parseInt(employee.paid_last_year);
+            if(employee.shareholder_status) {
+                employee.averageBenefit = (benefitPlans.percent_copay / benefitPlans.deductible) * employee.shareholder_status * totalIncome;
+            } else {
+                employee.averageBenefit = (benefitPlans.percent_copay / benefitPlans.deductible) * totalIncome;
+            }
             result.push(employee);
         }
         res.end(JSON.stringify(result));
-    } catch(e) {
+    } catch (e) {
         console.log(e);
         res.statusCode = 500;
         res.end(JSON.stringify({error: {message: "Error"}}));
@@ -202,24 +267,113 @@ api.get("/employee/averageBenefit", async (req, res, next) => {
 api.get("/employee/detail/:id", async (req, res, next) => {
     try {
         let employee = await app.models.Employee.findOne({_id: req.params.id}).exec();
-        if(employee) {
+        if (employee) {
             employee = employee.toJSON();
             res.end(JSON.stringify(employee));
         } else {
             res.end(JSON.stringify({}));
         }
-    } catch(e) {
+    } catch (e) {
         console.log(e);
         res.statusCode = 500;
         res.end(JSON.stringify({error: {message: "Error"}}));
     }
 });
 
+function mySqlQuery(query) {
+    return new Promise((resolve, reject) => {
+        payroll.query(query, function (error, results, fields) {
+            if (error) reject(error);
+            else {
+                resolve(results);
+            }
+        });
+    });
+}
+
+api.post("/employee/create", async (req, res, next) => {
+   try {
+        let employee = req.body;
+       let HR_DATA = await HR.connect();
+       let personal = await HR_DATA.request().query("select * from Personal"),
+           pr_employee = await mySqlQuery(`select * from Employee`);
+       let pr_employee_id  = pr_employee[pr_employee.length - 1]["idEmployee"];
+       pr_employee_id =  parseInt(pr_employee_id) + 1;
+       let hr_id = parseInt(personal.recordset[personal.recordset.length - 1]["Employee_ID"]) + 1;
+
+       await HR_DATA.request().query(
+           `INSERT INTO [dbo].[Personal]([Employee_ID], [First_Name], [Last_Name], [Middle_Initial], [Address1], [Address2], [City], [State], [Zip], [Email], [Phone_Number], [Social_Security_Number], [Drivers_License], [Marital_Status], [Gender], [Shareholder_Status], [Benefit_Plans], [Ethnicity], [Birthday]) 
+            VALUES (${hr_id}, N'${employee['first_name']}', N'${employee['last_name']}', N'${employee['middle_initial']}', N'${employee['address1']}', N'${employee['address2']}', N'${employee['city']}', N'${employee['state']}', ${employee['zip']}, N'${employee['email']}', N'${employee['phone_number']}', N'${employee['SSN']}', N'${employee['driver_license']}', N'${employee['marital_status']}', '${employee['gender'] ? 1 : 0}', '${employee['shareholder_status'] ? 1 : 0}', ${employee['benefit_plan']}, N'${employee['Ethnicity']}', '${new Date().toISOString().slice(0, 19).replace('T', ' ')}');`
+       );
+       await mySqlQuery(`INSERT INTO \`payroll\`.\`Employee\`(\`idEmployee\`, \`Employee Number\`, \`Last Name\`, \`First Name\`, \`SSN\`, \`Pay Rate\`, \`Pay Rates_idPay Rates\`, \`Vacation Days\`, \`Paid To Date\`, \`Paid Last Year\`) VALUES (${pr_employee_id}, ${hr_id}, '${employee["last_name"]}', '${employee["first_name"]}', ${employee["SSN"]}, '${employee["pay_rate"]}', ${employee["pay_rates_id_pay_rates"]}, ${employee["vacation_days"]}, ${employee["paid_to_date"]}, ${employee["paid_last_year"]});`);
+       await HR.close();
+       await sync();
+       res.end(JSON.stringify({success: true}))
+   } catch(e) {
+       console.log(e);
+       res.statusCode = 500;
+       res.end(JSON.stringify({error: {message: "Error"}}));
+   }
+});
+
 api.post("/employee/update", async (req, res, next) => {
     try {
-
+        let employee = req.body;
+        await app.models.Employee.findOneAndUpdate({_id: employee._id}, {$set: _.omit(employee, ['_id'])});
+        let HR_DATA = await HR.connect();
+        await HR_DATA.request().query(
+            `update Personal 
+             set First_Name='${employee['first_name']}',
+             Last_Name='${employee['last_name']}',
+             Middle_Initial='${employee['middle_initial']}',
+             Address1='${employee['address1']}',
+             Address2='${employee['address2']}',
+             City='${employee['city']}',
+             State='${employee['state']}',
+             Zip='${employee['zip']}',
+             Email='${employee['email']}',
+             Phone_Number='${employee['phone_number']}',
+             Social_Security_Number='${employee['SSN']}',
+             Drivers_License='${employee['driver_license']}',
+             Marital_Status='${employee['marital_status']}',
+             Gender=${employee['gender'] ? 1 : 0},
+             Shareholder_Status=${employee['shareholder_status'] ? 1 : 0},
+             Benefit_Plans=${employee['benefit_plan']},
+             Ethnicity='${employee['Ethnicity']}'
+             where Employee_ID=${employee["hr_employee_id"]}`);
+        await mySqlQuery("update `Employee` set " +
+            "`Employee Number`=" + employee["hr_employee_id"] + ", " +
+            "`Last Name`='" + employee["last_name"] + "', " +
+            "`First Name`='" + employee["first_name"] + "', " +
+            "`SSN`=" + employee["SSN"] + ", " +
+            "`Pay Rate`='" + employee["pay_rate"] + "', " +
+            "`Pay Rates_idPay Rates`=" + employee["pay_rates_id_pay_rates"] + ", " +
+            "`Vacation Days`=" + employee["vacation_days"] + ", " +
+            "`Paid To Date`=" + employee["paid_to_date"] + ", " +
+            "`Paid Last Year`=" + employee["paid_last_year"] + " where `Employee`.`idEmployee`=" + employee["pr_employee_id"]);
+        await HR.close();
+        res.end(JSON.stringify({success: true}))
     } catch (e) {
+        console.log(e);
+        res.statusCode = 500;
+        res.end(JSON.stringify({error: {message: "Error"}}));
+    }
+});
 
+api.post("/employee/remove", async (req, res, next) => {
+    try {
+        let employeeId = req.body.employeeId;
+        let employee = await app.models.Employee.findOne({_id: employeeId});
+        let HR_DATA = await HR.connect();
+        await HR_DATA.request().query(`delete from Personal where Employee_ID=${employee.hr_employee_id}`);
+        await mySqlQuery(`delete from \`Employee\` where idEmployee=${employee.pr_employee_id}`);
+        await app.models.Employee.remove({_id: employeeId}).exec();
+        await HR.close();
+        res.end(JSON.stringify({success: true}));
+    } catch (e) {
+        console.log(e);
+        res.statusCode = 500;
+        res.end(JSON.stringify({error: {message: "Error"}}));
     }
 });
 

@@ -7,8 +7,20 @@ class Report extends React.Component {
         super(props)
     }
 
-    componentDidMount() {
-        console.log(this.props);
+    async loadData () {
+        try {
+            let {data, loading} = await this.props.loadData();
+            let { dataTable } = this.refs;
+            if(dataTable) {
+                dataTable.setState({data, loading})
+            }
+        } catch(e) {
+            alert(e);
+        }
+    }
+
+    async componentDidMount() {
+        await this.loadData()
     }
 
     render() {
@@ -25,20 +37,26 @@ class Report extends React.Component {
                                     <label className="col-sm-3 control-label col-lg-3" htmlFor="inputSuccess">Chức
                                         vụ</label>
                                     <div className="col-lg-6">
-                                        <select className="form-control input-sm m-bot15">
-                                            <option>Shareholder</option>
-                                            <option>Part-time Employee</option>
-                                            <option>Full-time Employee</option>
+                                        <select className="form-control input-sm m-bot15"
+                                                onChange={e => {
+                                                    this.props.instance.setState({filter: e.target.value}, async () => {
+                                                        await this.loadData();
+                                                    });
+
+                                                }}
+                                            value={this.props.instance.state.filter}
+                                        >
+                                            <option value="all">All</option>
+                                            <option value="shareholder">Shareholder</option>
+                                            <option value="employee">Employee</option>
                                         </select>
                                     </div>
                                 </div>
-                                <div className="form-group">
-                                    <div className="col-sm-6 col-lg-6 control-label">
-                                        <button type="submit" className="btn btn-info">Submit</button>
-                                    </div>
-                                </div>
                             </form>
-                            <DataTable title={this.props.title} field={["first_name", "last_name", "SSN", "paid_to_date", "paid_last_year", "totalIncome"]}/>
+                            <DataTable
+                                ref="dataTable"
+                                title={this.props.title}
+                                field={this.props.fields}/>
                         </div>
                     </section>
                 </div>
@@ -48,11 +66,15 @@ class Report extends React.Component {
 }
 
 Report.propTypes = {
-    title: PropTypes.string
+    title: PropTypes.string,
+    loadData: PropTypes.func,
+    fields: PropTypes.array
 };
 
 Report.defaultProps = {
-    title: ""
+    title: "",
+    loadData: () => {},
+    fields: []
 };
 
 export default Report;

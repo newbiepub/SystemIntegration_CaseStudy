@@ -73,7 +73,7 @@ export async function sync() {
                     vacation_days: getEmployee['Vacation Days'],
                     paid_to_date: getEmployee['Paid To Date'],
                     paid_last_year: getEmployee['Paid Last Year'],
-                    birthday: getEmployee['Birthday']
+                    birthday: item['Birthday'] != undefined ? new Date(item['Birthday']) : new Date()
                 }, {upsert: true, multi: true}).exec();
             }
         }

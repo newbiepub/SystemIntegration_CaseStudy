@@ -39,26 +39,31 @@ class DataTable extends React.Component {
         }}">
                                     <thead>
                                     <tr>
-                                        {this.props.field.map(field => {
-                                            return <th data-breakpoints="xs">{field}</th>
+                                        {this.props.field.map((field, index) => {
+                                            return <th key={index} data-breakpoints="xs">{field}</th>
                                         })}
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    {this.state.data.map(item => {
+                                    {this.state.data.map((item, index) => {
                                         return (
-                                            <tr data-expanded="true">
-                                                {Object.keys(_.pick(item, this.props.field)).map(field => {
-                                                    return <td>{item[field]}</td>
+                                            <tr key={index} data-expanded="true">
+                                                {Object.keys(_.pick(item, this.props.field)).map((field, index) => {
+                                                    if(field === "gender") {
+                                                        return <td key={index}>{item[field] ? "Nam" : "Nữ"}</td>
+                                                    }
+                                                    return <td key={index}>{item[field]}</td>
                                                 })}
                                             </tr>
                                         )
                                     })}
-
                                     </tbody>
                                 </table>
                             }
-
+                            {
+                                (!this.state.loading && this.state.data === "NoData") &&
+                                    <p>No Data</p>
+                            }
                         </div>
                     </div>
                 </div>

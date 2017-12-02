@@ -9,7 +9,7 @@ class DataTable extends React.Component {
         super(props);
         this.state = {
             loading: true,
-            data: []
+            data: [],
         }
     }
 
@@ -18,25 +18,26 @@ class DataTable extends React.Component {
             <div className="table-agile-info">
                 <div className="panel panel-default">
                     <div className="panel-heading">
-                        Responsive Table
+                        {this.props.title}
                     </div>
                     <div className="row w3-res-tb">
                         <div className="col-sm-5 m-b-xs">
-                            <select className="input-sm form-control w-sm inline v-middle">
-                                <option value="0">Bulk action</option>
-                                <option value="1">Delete selected</option>
-                                <option value="2">Bulk edit</option>
-                                <option value="3">Export</option>
+                            <select className="input-sm form-control w-sm inline v-middle"
+                                    onChange={(e) => this.props.onChangeFilter(e)}
+                                    value={this.props.instance.state.filter}>
+                                <option value="all">All</option>
+                                <option value="shareholder">Shareholder</option>
+                                <option value="employee">Employee</option>
                             </select>
-                            <button className="btn btn-sm btn-default">Apply</button>
                         </div>
                         <div className="col-sm-4">
                         </div>
                         <div className="col-sm-3">
                             <div className="input-group">
-                                <input type="text" className="input-sm form-control" placeholder="Search"/>
+                                <input type="text" className="input-sm form-control" placeholder="Search" value={this.state.searchText}
+                                       onChange={e => this.props.instance.setState({searchText: e.target.value})}/>
           <span className="input-group-btn">
-            <button className="btn btn-sm btn-default" type="button">Go!</button>
+            <button onClick={() => {this.props.onSubmitSearch()}} className="btn btn-sm btn-default" type="button">Go!</button>
           </span>
                             </div>
                         </div>
@@ -68,7 +69,7 @@ class DataTable extends React.Component {
                                                 <Link to={`/employee/update/${item._id}`} className="active"><i className="fa fa-edit"></i><i className=""></i></Link>
                                             </td>
                                             <td>
-                                                <a href="" className="active">
+                                                <a type="button" href="" onClick={() => this.props.onDeleteItem(item)} className="active">
                                                     <i className="fa fa-minus-square"></i>
                                                 </a>
                                             </td>
@@ -91,12 +92,20 @@ class DataTable extends React.Component {
 
 DataTable.propTypes = {
     title: PropTypes.string,
-    field: PropTypes.array
+    field: PropTypes.array,
+    filter: PropTypes.string,
+    onChangeFilter: PropTypes.func,
+    onSubmitSearch: PropTypes.func,
+    onDeleteItem: PropTypes.func
 };
 
 DataTable.defaultProps = {
     title: "",
-    field: []
+    field: [],
+    filter: "all",
+    onChangeFilter: () => {},
+    onSubmitSearch: () => {},
+    onDeleteItem: () => {}
 };
 
 export default DataTable
