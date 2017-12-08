@@ -30,7 +30,7 @@ class ChangeBenefit extends React.Component {
 
     render() {
         return <DataTable ref="dataTable" title="Employee Change Benefit Plans"
-                          field={["first_name", "last_name", "SSN", "old_plan_name", "changed_plan_name"]}/>
+                          field={["first_name", "last_name", "SSN", "old_plan_name", "changed_plan_name", "createdAt"]}/>
     }
 }
 

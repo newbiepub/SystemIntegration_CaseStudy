@@ -104,7 +104,7 @@ class AllEmployee extends React.Component {
                        onChangeFilter={this.onChangeFilter.bind(this)}
                        onSubmitSearch={this.onSubmitSearch.bind(this)}
                        onDeleteItem={this.onDeleteItem.bind(this)}
-                       field={["first_name", "last_name", "SSN", "paid_to_date", "paid_last_year"]}/>
+                       field={["first_name", "last_name", "SSN", "gender", "city"]}/>
         </div>
     }
 }

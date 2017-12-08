@@ -15,7 +15,7 @@ class CreateEmployee extends React.Component {
             state: {type: "text", value: "", label: "State"},
             zip: {type: "number", value: 0, min: 0, label: "Zip"},
             email: {
-                type: "text", value: "",
+                type: "email", value: "",
                 validate: {
                     validator: function (v) {
                         return (new RegExp((/^[a-z0-9A-Z]{1,}\@[a-z0-9A-Z]{1,}\.[a-z0-9A-Z]{1,}$/))).test(v);
@@ -38,15 +38,10 @@ class CreateEmployee extends React.Component {
             },
             driver_license: {type: "text", value: "", label: "Driver License"},
             marital_status: {type: "text", value: "", label: "Marital Status"},
-            gender: {type: "checkbox", value: true, label: "Gender"},
-            shareholder_status: {type: "checkbox", value: true, label: "Shareholder Status"},
-            benefit_plan: {type: "options", value: 0, min: 0, label: "Benefit Plan"},
+            gender: {type: "checkbox", value: false, label: "Gender"},
+            shareholder_status: {type: "checkbox", value: false, label: "Shareholder Status"},
             Ethnicity: {type: "text", value: "", label: "Ethnicity"},
-            pay_rate: {type: "text", value: "", label: "Pay Rate"},
-            pay_rates_id_pay_rates: {type: "options", value: 0, min: 0, label: "Pay Rates ID"},
-            vacation_days: {type: "number", value: 0, min: 0, label: "Vacation Days"},
-            paid_to_date: {type: "number", value: 0, min: 0, label: "Paid To Date"},
-            paid_last_year: {type: "number", value: 0, min: 0, label: "Paid Last Year"}
+
         }
     }
 
@@ -104,6 +99,7 @@ class CreateEmployee extends React.Component {
     onSubmit(e, data) {
         const self = this;
         let _csrf = $("#_csrf").val();
+        console.log(data);
         (() => {
             $.ajax({
                 url: "http://localhost:3000/api/employee/create",

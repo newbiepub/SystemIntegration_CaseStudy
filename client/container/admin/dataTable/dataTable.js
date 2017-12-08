@@ -2,6 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import Loading from "../../../component/loading/loading";
 import * as _ from "lodash";
+import {formatDate} from "../../../utils/moment";
 
 class DataTable extends React.Component {
     constructor(props) {
@@ -51,6 +52,9 @@ class DataTable extends React.Component {
                                                 {Object.keys(_.pick(item, this.props.field)).map((field, index) => {
                                                     if(field === "gender") {
                                                         return <td key={index}>{item[field] ? "Nam" : "Nữ"}</td>
+                                                    }
+                                                    if(field === "createdAt" || field === "birthday" || field === "hire_date" || field === "rehire_date") {
+                                                        return <td key={index}>{formatDate(item[field])}</td>
                                                     }
                                                     return <td key={index}>{item[field]}</td>
                                                 })}

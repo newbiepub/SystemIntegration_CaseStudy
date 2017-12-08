@@ -63,6 +63,9 @@ class DataTable extends React.Component {
                                     return (
                                         <tr key={index} data-expanded="true">
                                             {Object.keys(_.pick(item, this.props.field)).map((field, index) => {
+                                                if(field === "gender") {
+                                                    return <td key={index}>{item[field] ? "Nam" : "Nữ"}</td>
+                                                }
                                                 return <td key={index}>{item[field]}</td>
                                             })}
                                             <td>

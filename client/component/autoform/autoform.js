@@ -8,6 +8,12 @@ class AutoForm extends React.Component {
         Object.keys(props.field).forEach((field, index) => {
             this.state[field] = props.field[field].value;
         });
+        Object.assign(this.state, {
+            benefit_plan: null,
+            pay_rates_id_pay_rates: null,
+            hire_date: new Date(),
+            birthday: new Date()
+        })
     }
 
     componentDidMount() {
@@ -30,41 +36,14 @@ class AutoForm extends React.Component {
                                 {
                                     this.props.field[field].type === "number" ?
                                         <input type={this.props.field[field].type}
+                                               required={true}
                                                min={this.props.field[field].min}
                                                onChange={e => {
                                                    let newState = {};
                                                    newState[field] = e.target.value;
                                                    this.setState(newState);
                                                }}
-                                               className="form-control" value={this.state[field]}/> :
-                                        (this.props.field[field].type === "options" && this.props.field[field].label === "Pay Rates ID") ?
-                                            this.state.options1.length > 0 &&
-                                            <select className="form-control m-bot15"
-                                                    onChange={e => {
-                                                        let newState = {};
-                                                        newState[field] = e.target.value;
-                                                        this.setState(newState);
-                                                    }}
-                                                    value={this.state.pay_rates_id_pay_rates}
-                                            >
-                                                {this.state.options1.map((item, index) =>
-                                                    <option
-                                                    key={index} value={item.value}>{item.name}</option>)}
-                                            </select>
-                                            :
-                                            ((this.props.field[field].type === "options" && this.props.field[field].label === "Benefit Plan")) ?
-                                                this.state.options2.length > 0 &&
-                                                <select className="form-control m-bot15"
-                                                        onChange={e => {
-                                                            let newState = {};
-                                                            newState[field] = e.target.value;
-                                                            this.setState(newState);
-                                                        }}
-                                                        value={this.state.benefit_plan}
-                                                >
-                                                    {this.state.options2.map((item, index) => <option
-                                                        key={index} value={item.value}>{item.name}</option>)}
-                                                </select>
+                                               className="form-control" value={this.state[field]}/>
                                                 :
                                             <input type={this.props.field[field].type}
                                                    onChange={e => {
@@ -75,11 +54,21 @@ class AutoForm extends React.Component {
                                                    value={this.state[field]}
                                                    className="form-control"/>
                                 }
-
                             </div>
                         </div>
                     )
                 })}
+                <div className="form-group">
+                    <label className="col-sm-3 control-label">Birthday</label>
+                    <div className="col-sm-6">
+                        <input className="form-control"
+                               type="date"
+                               onChange={e => {
+                                   this.setState({birthday: e.target.value})
+                               }}
+                               value={new Date(this.state.birthday).toISOString().substr(0, 10)}/>
+                    </div>
+                </div>
                 <div className="row">
                     {
                         this.props.type === "create" &&

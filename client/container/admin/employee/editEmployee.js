@@ -23,13 +23,14 @@ class EditEmployee extends React.Component {
             marital_status: "",
             gender: false,
             shareholder_status: false,
-            benefit_plan: 1,
+            benefit_plan: null,
             Ethnicity: "",
             pay_rate: "",
-            pay_rates_id_pay_rates: 1,
+            pay_rates_id_pay_rates: null,
             vacation_days: 0,
             paid_to_date: 0,
             paid_last_year: 0,
+            birthday: new Date(),
             isUpdate: false
         }
     }
@@ -142,6 +143,7 @@ class EditEmployee extends React.Component {
                                                    newState["first_name"] = e.target.value;
                                                    this.setState(newState);
                                                }}
+                                               required={true}
                                                className="form-control" value={this.state.first_name}/>
                                     </div>
                                 </div>
@@ -154,6 +156,7 @@ class EditEmployee extends React.Component {
                                                    newState["last_name"] = e.target.value;
                                                    this.setState(newState);
                                                }}
+                                               required={true}
                                                className="form-control" value={this.state.last_name}/>
                                     </div>
                                 </div>
@@ -166,6 +169,7 @@ class EditEmployee extends React.Component {
                                                    newState["middle_initial"] = e.target.value;
                                                    this.setState(newState);
                                                }}
+                                               required={true}
                                                className="form-control" value={this.state.middle_initial}/>
                                     </div>
                                 </div>
@@ -178,6 +182,7 @@ class EditEmployee extends React.Component {
                                                    newState["address1"] = e.target.value;
                                                    this.setState(newState);
                                                }}
+                                               required={true}
                                                className="form-control" value={this.state.address1}/>
                                     </div>
                                 </div>
@@ -190,6 +195,7 @@ class EditEmployee extends React.Component {
                                                    newState["address2"] = e.target.value;
                                                    this.setState(newState);
                                                }}
+                                               required={true}
                                                className="form-control" value={this.state.address2}/>
                                     </div>
                                 </div>
@@ -202,6 +208,7 @@ class EditEmployee extends React.Component {
                                                    newState["city"] = e.target.value;
                                                    this.setState(newState);
                                                }}
+                                               required={true}
                                                className="form-control" value={this.state.city}/>
                                     </div>
                                 </div>
@@ -214,6 +221,7 @@ class EditEmployee extends React.Component {
                                                    newState["state"] = e.target.value;
                                                    this.setState(newState);
                                                }}
+                                               required={true}
                                                className="form-control" value={this.state.state}/>
                                     </div>
                                 </div>
@@ -226,18 +234,20 @@ class EditEmployee extends React.Component {
                                                    newState["zip"] = e.target.value;
                                                    this.setState(newState);
                                                }}
+                                               required={true}
                                                className="form-control" value={this.state.zip}/>
                                     </div>
                                 </div>
                                 <div className="form-group">
                                     <label className="col-sm-3 control-label">Email</label>
                                     <div className="col-sm-6">
-                                        <input type={"text"}
+                                        <input type={"email"}
                                                onChange={e => {
                                                    let newState = {};
                                                    newState["email"] = e.target.value;
                                                    this.setState(newState);
                                                }}
+                                               required={true}
                                                className="form-control" value={this.state.email}/>
                                     </div>
                                 </div>
@@ -250,6 +260,7 @@ class EditEmployee extends React.Component {
                                                    newState["phone_number"] = e.target.value;
                                                    this.setState(newState);
                                                }}
+                                               required={true}
                                                className="form-control" value={this.state.phone_number}/>
                                     </div>
                                 </div>
@@ -257,11 +268,13 @@ class EditEmployee extends React.Component {
                                     <label className="col-sm-3 control-label">SSN</label>
                                     <div className="col-sm-6">
                                         <input type={"text"}
+                                               size={10}
                                                onChange={e => {
                                                    let newState = {};
                                                    newState["SSN"] = e.target.value;
                                                    this.setState(newState);
                                                }}
+                                               required={true}
                                                className="form-control" value={this.state.SSN}/>
                                     </div>
                                 </div>
@@ -274,6 +287,7 @@ class EditEmployee extends React.Component {
                                                    newState["driver_license"] = e.target.value;
                                                    this.setState(newState);
                                                }}
+                                               required={true}
                                                className="form-control" value={this.state.driver_license}/>
                                     </div>
                                 </div>
@@ -286,6 +300,7 @@ class EditEmployee extends React.Component {
                                                    newState["marital_status"] = e.target.value;
                                                    this.setState(newState);
                                                }}
+                                               required={true}
                                                className="form-control" value={this.state.marital_status}/>
                                     </div>
                                 </div>
@@ -295,7 +310,7 @@ class EditEmployee extends React.Component {
                                         <input type={"checkbox"}
                                                onChange={e => {
                                                    let newState = {};
-                                                   newState["gender"] = e.target.value;
+                                                   newState["gender"] = e.target.checked;
                                                    this.setState(newState);
                                                }}
                                                checked={this.state.gender}
@@ -308,28 +323,31 @@ class EditEmployee extends React.Component {
                                         <input type={"checkbox"}
                                                onChange={e => {
                                                    let newState = {};
-                                                   newState["shareholder_status"] = e.target.value;
+                                                   newState["shareholder_status"] = e.target.checked;
                                                    this.setState(newState);
                                                }}
                                                checked={this.state.shareholder_status}
                                                className="form-control"/>
                                     </div>
                                 </div>
-                                <div className="form-group">
-                                    <label className="col-sm-3 control-label">Benefit Plans</label>
-                                    <div className="col-sm-6">
-                                        {this.state.options2.length > 0 &&
-                                        <select className="form-control m-bot15"
-                                                onChange={e => {
-                                                    this.setState({benefit_plan: e.target.value})
-                                                }}
-                                                value={this.state.benefit_plan}
-                                        >
-                                            {this.state.options2.map((item, index) => <option
-                                                key={index} value={item.value}>{item.name}</option>)}
-                                        </select>}
+                                {
+                                    (this.state.options2.length > 0 && this.state.benefit_plan != undefined) &&
+                                    <div className="form-group">
+                                        <label className="col-sm-3 control-label">Benefit Plans</label>
+                                        <div className="col-sm-6">
+                                            {this.state.options2.length > 0 &&
+                                            <select className="form-control m-bot15"
+                                                    onChange={e => {
+                                                        this.setState({benefit_plan: e.target.value})
+                                                    }}
+                                                    value={this.state.benefit_plan}
+                                            >
+                                                {this.state.options2.map((item, index) => <option
+                                                    key={index} value={item.value}>{item.name}</option>)}
+                                            </select>}
+                                        </div>
                                     </div>
-                                </div>
+                                }
                                 <div className="form-group">
                                     <label className="col-sm-3 control-label">Ethnicity</label>
                                     <div className="col-sm-6">
@@ -344,18 +362,35 @@ class EditEmployee extends React.Component {
                                     </div>
                                 </div>
                                 <div className="form-group">
-                                    <label className="col-sm-3 control-label">Pay Rate</label>
+                                    <label className="col-sm-3 control-label">Birthday</label>
                                     <div className="col-sm-6">
-                                        <input type={"text"}
+                                        <input type={"date"}
                                                onChange={e => {
                                                    let newState = {};
-                                                   newState["pay_rate"] = e.target.value;
+                                                   newState["birthday"] = e.target.value;
                                                    this.setState(newState);
                                                }}
-                                               value={this.state.pay_rate}
+                                               value={new Date(this.state.birthday).toISOString().substr(0, 10)}
                                                className="form-control"/>
                                     </div>
                                 </div>
+                                {
+                                    (this.state.options1.length > 0 && this.state.pay_rates_id_pay_rates != undefined) &&
+                                    <div className="form-group">
+                                        <label className="col-sm-3 control-label">Pay Rate</label>
+                                        <div className="col-sm-6">
+                                            <input type={"text"}
+                                                   onChange={e => {
+                                                       let newState = {};
+                                                       newState["pay_rate"] = e.target.value;
+                                                       this.setState(newState);
+                                                   }}
+                                                   value={this.state.pay_rate}
+                                                   className="form-control"/>
+                                        </div>
+                                    </div>
+                                }
+                                {(this.state.options1.length > 0 && this.state.pay_rates_id_pay_rates != undefined) &&
                                 <div className="form-group">
                                     <label className="col-sm-3 control-label">Pay Rate ID</label>
                                     <div className="col-sm-6">
@@ -376,45 +411,55 @@ class EditEmployee extends React.Component {
                                         }
                                     </div>
                                 </div>
-                                <div className="form-group">
-                                    <label className="col-sm-3 control-label">Vacation Days</label>
-                                    <div className="col-sm-6">
-                                        <input type={"number"}
-                                               onChange={e => {
-                                                   let newState = {};
-                                                   newState["vacation_days"] = e.target.value;
-                                                   this.setState(newState);
-                                               }}
-                                               value={this.state.vacation_days}
-                                               className="form-control"/>
+                                }
+                                {
+                                    (this.state.options1.length > 0 && this.state.pay_rates_id_pay_rates != undefined) &&
+                                    <div className="form-group">
+                                        <label className="col-sm-3 control-label">Vacation Days</label>
+                                        <div className="col-sm-6">
+                                            <input type={"number"}
+                                                   onChange={e => {
+                                                       let newState = {};
+                                                       newState["vacation_days"] = e.target.value;
+                                                       this.setState(newState);
+                                                   }}
+                                                   value={this.state.vacation_days}
+                                                   className="form-control"/>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="form-group">
-                                    <label className="col-sm-3 control-label">Paid To Date</label>
-                                    <div className="col-sm-6">
-                                        <input type={"number"}
-                                               onChange={e => {
-                                                   let newState = {};
-                                                   newState["paid_to_date"] = e.target.value;
-                                                   this.setState(newState);
-                                               }}
-                                               value={this.state.paid_to_date}
-                                               className="form-control"/>
+                                }
+                                {
+                                    (this.state.options1.length > 0 && this.state.pay_rates_id_pay_rates != undefined) &&
+                                    <div className="form-group">
+                                        <label className="col-sm-3 control-label">Paid To Date</label>
+                                        <div className="col-sm-6">
+                                            <input type={"number"}
+                                                   onChange={e => {
+                                                       let newState = {};
+                                                       newState["paid_to_date"] = e.target.value;
+                                                       this.setState(newState);
+                                                   }}
+                                                   value={this.state.paid_to_date}
+                                                   className="form-control"/>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="form-group">
-                                    <label className="col-sm-3 control-label">Paid Last Year</label>
-                                    <div className="col-sm-6">
-                                        <input type={"number"}
-                                               onChange={e => {
-                                                   let newState = {};
-                                                   newState["paid_last_year"] = e.target.value;
-                                                   this.setState(newState);
-                                               }}
-                                               value={this.state.paid_last_year}
-                                               className="form-control"/>
+                                }
+                                {
+                                    (this.state.options1.length > 0 && this.state.pay_rates_id_pay_rates != undefined) &&
+                                    <div className="form-group">
+                                        <label className="col-sm-3 control-label">Paid Last Year</label>
+                                        <div className="col-sm-6">
+                                            <input type={"number"}
+                                                   onChange={e => {
+                                                       let newState = {};
+                                                       newState["paid_last_year"] = e.target.value;
+                                                       this.setState(newState);
+                                                   }}
+                                                   value={this.state.paid_last_year}
+                                                   className="form-control"/>
+                                        </div>
                                     </div>
-                                </div>
+                                }
                                 <div className="row">
                                     <div className="col-lg-offset-2 col-lg-2">
                                         <button disabled={this.state.isUpdate} type="submit" className="btn btn-primary">Cập Nhật</button>

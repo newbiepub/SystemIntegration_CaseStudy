@@ -122,6 +122,8 @@ const boot = async (app) => {
                 profile: {name: "Lam Nguyen"},
             }).save()
         }
+
+
     } catch(e) {
         console.log(e);
     }

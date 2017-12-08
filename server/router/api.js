@@ -4,6 +4,8 @@ import app from "../index";
 import HR from "../db/hr";
 import payroll from "../db/payroll";
 import * as _ from "lodash";
+import faker from 'faker';
+import {BenefitHistory} from "../models/benefitHistory";
 
 const api = express.Router();
 
@@ -66,21 +68,7 @@ api.get("/hiredate", async (req, res, next) => {
 
 api.get("/change/benefit", async (req, res, next) => {
     try {
-        let HR_DATA = await HR.connect(),
-            Employee = await app.models.Employee.find({}).exec(),
-            output = [];
-        for (let item of Employee) {
-            let HR_Employee = await HR_DATA.request().query(`select Benefit_Plans from Personal where Employee_ID=${item.hr_employee_id}`);
-            if (!_.isEqual(item.benefit_plan, HR_Employee.recordset[0]["Benefit_Plans"])) {
-                let oldBenefitPlans = await HR.request().query(`select Plan_Name from Benefit_Plans where Benefit_Plan_ID=${item.benefit_plan}`),
-                    changedBenefitPlans = await HR.request().query(`select Plan_Name from Benefit_Plans where Benefit_Plan_ID=${HR_Employee.recordset[0]["Benefit_Plans"]}`);
-                item = item.toJSON();
-                item.old_plan_name = oldBenefitPlans.recordset[0]["Plan_Name"];
-                item.changed_plan_name = changedBenefitPlans.recordset[0]["Plan_Name"];
-                output.push(item);
-            }
-        }
-        await HR.close();
+        let output = await BenefitHistory.find({}).exec();
         res.end(JSON.stringify(output));
     } catch (e) {
         console.log(e);
@@ -119,17 +107,18 @@ api.get('/employee', async (req, res, next) => {
     try {
 
         let filter = {};
-        if(req.query.filter === "shareholder") {
+        if (req.query.filter === "shareholder") {
             filter = {shareholder_status: true}
         } else if (req.query.filter === "employee") {
             filter = {shareholder_status: false}
         }
-        if(req.query.search) {
-            Object.assign(filter, {$or: [
-                {first_name: {$regex: RegExp.escape(req.query.search), $options: 'i'}},
-                {last_name: {$regex: RegExp.escape(req.query.search), $options: 'i'}},
-                {middle_initial: {$regex: RegExp.escape(req.query.search), $options: 'i'}},
-                {city: {$regex: RegExp.escape(req.query.search), $options: 'i'}}
+        if (req.query.search) {
+            Object.assign(filter, {
+                $or: [
+                    {first_name: {$regex: RegExp.escape(req.query.search), $options: 'i'}},
+                    {last_name: {$regex: RegExp.escape(req.query.search), $options: 'i'}},
+                    {middle_initial: {$regex: RegExp.escape(req.query.search), $options: 'i'}},
+                    {city: {$regex: RegExp.escape(req.query.search), $options: 'i'}}
                 ]
             })
         }
@@ -146,14 +135,17 @@ api.get("/employee/birthday", async (req, res, next) => {
     try {
         let employee = await app.models.Employee.find({}).exec(),
             result = [];
-        for(let item of employee) {
+        for (let item of employee) {
             let birthday = item.birthday;
-            if(birthday.getMonth() === (new Date()).getMonth() && birthday.getFullYear() === (new Date()).getFullYear()) {
-                result.push(item);
+            if (birthday != undefined) {
+                if (birthday.getMonth() === (new Date()).getMonth() &&
+                    birthday.getDate() >= (new Date()).getDate()) {
+                    result.push(item);
+                }
             }
         }
         res.end(JSON.stringify(result));
-    } catch(e) {
+    } catch (e) {
         console.log(e);
         res.statusCode = 500;
         res.end(JSON.stringify({error: {message: 'Error'}}))
@@ -164,9 +156,9 @@ api.get('/employee/accumulated/vacation', async (req, res, next) => {
     try {
         let employees = await app.models.Employee.find({}).exec(),
             result = [];
-        for(let employee of employees) {
+        for (let employee of employees) {
             employee = employee.toJSON();
-            if(employee.shareholder_status) {
+            if (employee.shareholder_status) {
                 employee.accumulated_vacations = employee.vacation_days < 15 ? 15 - employee.vacation_days : 0;
             } else {
                 employee.accumulated_vacations = employee.vacation_days < 12 ? 12 - employee.vacation_days : 0;
@@ -174,7 +166,7 @@ api.get('/employee/accumulated/vacation', async (req, res, next) => {
             result.push(employee);
         }
         res.end(JSON.stringify(result));
-    } catch(e) {
+    } catch (e) {
         console.log(e);
         res.statusCode = 500;
         res.end(JSON.stringify({error: {message: 'Error'}}))
@@ -195,7 +187,7 @@ api.get("/employee/count", async (req, res, next) => {
 api.get("/employee/totalIncome", async (req, res, next) => {
     try {
         let filter = {};
-        if(req.query.filter === "shareholder") {
+        if (req.query.filter === "shareholder") {
             filter = {shareholder_status: true}
         } else if (req.query.filter === "employee") {
             filter = {shareholder_status: false}
@@ -220,7 +212,7 @@ api.get("/employee/totalIncome", async (req, res, next) => {
 api.get("/employee/totalVacation", async (req, res, next) => {
     try {
         let filter = {};
-        if(req.query.filter === "shareholder") {
+        if (req.query.filter === "shareholder") {
             filter = {shareholder_status: true}
         } else if (req.query.filter === "employee") {
             filter = {shareholder_status: false}
@@ -237,7 +229,7 @@ api.get("/employee/totalVacation", async (req, res, next) => {
 api.get("/employee/averageBenefit", async (req, res, next) => {
     try {
         let filter = {};
-        if(req.query.filter === "shareholder") {
+        if (req.query.filter === "shareholder") {
             filter = {shareholder_status: true}
         } else if (req.query.filter === "employee") {
             filter = {shareholder_status: false}
@@ -247,14 +239,16 @@ api.get("/employee/averageBenefit", async (req, res, next) => {
 
         for (let employee of employees) {
             employee = employee.toJSON();
-            let benefitPlans = await app.models.BenefitPlan.findOne({benefit_plan_id: employee.benefit_plan}).exec(),
-                totalIncome = parseInt(employee.paid_to_date) + parseInt(employee.paid_last_year);
-            if(employee.shareholder_status) {
-                employee.averageBenefit = (benefitPlans.percent_copay / benefitPlans.deductible) * employee.shareholder_status * totalIncome;
-            } else {
-                employee.averageBenefit = (benefitPlans.percent_copay / benefitPlans.deductible) * totalIncome;
+            if (employee.benefit_plan != undefined) {
+                let benefitPlans = await app.models.BenefitPlan.findOne({benefit_plan_id: employee.benefit_plan}).exec(),
+                    totalIncome = parseInt(employee.paid_to_date) + parseInt(employee.paid_last_year);
+                if (employee.shareholder_status) {
+                    employee.averageBenefit = (benefitPlans.percent_copay / benefitPlans.deductible) * employee.shareholder_status * totalIncome;
+                } else {
+                    employee.averageBenefit = (benefitPlans.percent_copay / benefitPlans.deductible) * totalIncome;
+                }
+                result.push(employee);
             }
-            result.push(employee);
         }
         res.end(JSON.stringify(result));
     } catch (e) {
@@ -292,28 +286,23 @@ function mySqlQuery(query) {
 }
 
 api.post("/employee/create", async (req, res, next) => {
-   try {
+    try {
         let employee = req.body;
-       let HR_DATA = await HR.connect();
-       let personal = await HR_DATA.request().query("select * from Personal"),
-           pr_employee = await mySqlQuery(`select * from Employee`);
-       let pr_employee_id  = pr_employee[pr_employee.length - 1]["idEmployee"];
-       pr_employee_id =  parseInt(pr_employee_id) + 1;
-       let hr_id = parseInt(personal.recordset[personal.recordset.length - 1]["Employee_ID"]) + 1;
+        let HR_DATA = await HR.connect();
+        let hr_id = faker.random.number();
 
-       await HR_DATA.request().query(
-           `INSERT INTO [dbo].[Personal]([Employee_ID], [First_Name], [Last_Name], [Middle_Initial], [Address1], [Address2], [City], [State], [Zip], [Email], [Phone_Number], [Social_Security_Number], [Drivers_License], [Marital_Status], [Gender], [Shareholder_Status], [Benefit_Plans], [Ethnicity], [Birthday]) 
+        await HR_DATA.request().query(
+            `INSERT INTO [dbo].[Personal]([Employee_ID], [First_Name], [Last_Name], [Middle_Initial], [Address1], [Address2], [City], [State], [Zip], [Email], [Phone_Number], [Social_Security_Number], [Drivers_License], [Marital_Status], [Gender], [Shareholder_Status], [Benefit_Plans], [Ethnicity], [Birthday]) 
             VALUES (${hr_id}, N'${employee['first_name']}', N'${employee['last_name']}', N'${employee['middle_initial']}', N'${employee['address1']}', N'${employee['address2']}', N'${employee['city']}', N'${employee['state']}', ${employee['zip']}, N'${employee['email']}', N'${employee['phone_number']}', N'${employee['SSN']}', N'${employee['driver_license']}', N'${employee['marital_status']}', '${employee['gender'] ? 1 : 0}', '${employee['shareholder_status'] ? 1 : 0}', ${employee['benefit_plan']}, N'${employee['Ethnicity']}', '${new Date().toISOString().slice(0, 19).replace('T', ' ')}');`
-       );
-       await mySqlQuery(`INSERT INTO \`payroll\`.\`Employee\`(\`idEmployee\`, \`Employee Number\`, \`Last Name\`, \`First Name\`, \`SSN\`, \`Pay Rate\`, \`Pay Rates_idPay Rates\`, \`Vacation Days\`, \`Paid To Date\`, \`Paid Last Year\`) VALUES (${pr_employee_id}, ${hr_id}, '${employee["last_name"]}', '${employee["first_name"]}', ${employee["SSN"]}, '${employee["pay_rate"]}', ${employee["pay_rates_id_pay_rates"]}, ${employee["vacation_days"]}, ${employee["paid_to_date"]}, ${employee["paid_last_year"]});`);
-       await HR.close();
-       await sync();
-       res.end(JSON.stringify({success: true}))
-   } catch(e) {
-       console.log(e);
-       res.statusCode = 500;
-       res.end(JSON.stringify({error: {message: "Error"}}));
-   }
+        );
+        await HR.close();
+        await sync();
+        res.end(JSON.stringify({success: true}))
+    } catch (e) {
+        console.log(e);
+        res.statusCode = 500;
+        res.end(JSON.stringify({error: {message: "Error"}}));
+    }
 });
 
 api.post("/employee/update", async (req, res, next) => {
@@ -321,8 +310,10 @@ api.post("/employee/update", async (req, res, next) => {
         let employee = req.body;
         await app.models.Employee.findOneAndUpdate({_id: employee._id}, {$set: _.omit(employee, ['_id'])});
         let HR_DATA = await HR.connect();
-        await HR_DATA.request().query(
-            `update Personal 
+        let personal = await HR_DATA.request().query(`select * from Personal where Employee_ID=${employee["hr_employee_id"]}`);
+        if (personal.recordset.length) {
+            await HR_DATA.request().query(
+                `update Personal 
              set First_Name='${employee['first_name']}',
              Last_Name='${employee['last_name']}',
              Middle_Initial='${employee['middle_initial']}',
@@ -341,16 +332,27 @@ api.post("/employee/update", async (req, res, next) => {
              Benefit_Plans=${employee['benefit_plan']},
              Ethnicity='${employee['Ethnicity']}'
              where Employee_ID=${employee["hr_employee_id"]}`);
-        await mySqlQuery("update `Employee` set " +
-            "`Employee Number`=" + employee["hr_employee_id"] + ", " +
-            "`Last Name`='" + employee["last_name"] + "', " +
-            "`First Name`='" + employee["first_name"] + "', " +
-            "`SSN`=" + employee["SSN"] + ", " +
-            "`Pay Rate`='" + employee["pay_rate"] + "', " +
-            "`Pay Rates_idPay Rates`=" + employee["pay_rates_id_pay_rates"] + ", " +
-            "`Vacation Days`=" + employee["vacation_days"] + ", " +
-            "`Paid To Date`=" + employee["paid_to_date"] + ", " +
-            "`Paid Last Year`=" + employee["paid_last_year"] + " where `Employee`.`idEmployee`=" + employee["pr_employee_id"]);
+        } else {
+            await HR_DATA.request().query(`
+                INSERT INTO [dbo].[Personal]([Employee_ID], [First_Name], [Last_Name], [Middle_Initial], [Address1], [Address2], [City], [State], [Zip], [Email], [Phone_Number], [Social_Security_Number], [Drivers_License], [Marital_Status], [Gender], [Shareholder_Status], [Benefit_Plans], [Ethnicity], [Birthday]) 
+                VALUES (${faker.random.number()}, N'${employee['first_name']}', N'${employee['last_name']}', N'${employee['middle_initial']}', N'${employee['address1']}', N'${employee['address2']}', N'${employee['city']}', N'${employee['state']}', ${employee['zip']}, N'${employee['email']}', N'${employee['phone_number']}', N'${employee['SSN']}', N'${employee['driver_license']}', N'${employee['marital_status']}', '${employee['gender'] ? 1 : 0}', '${employee['shareholder_status'] ? 1 : 0}', 1, N'${employee['Ethnicity']}', '${employee["birthday"]}');
+            `)
+        }
+
+        // Update Pay Rate
+        if (employee.hasOwnProperty("pay_rates_id_pay_rates")) {
+            await mySqlQuery("update `Employee` set " +
+                "`Employee Number`=" + employee["hr_employee_id"] + ", " +
+                "`Last Name`='" + employee["last_name"] + "', " +
+                "`First Name`='" + employee["first_name"] + "', " +
+                "`SSN`=" + employee["SSN"] + ", " +
+                "`Pay Rate`='" + employee["pay_rate"] + "', " +
+                "`Pay Rates_idPay Rates`=" + employee["pay_rates_id_pay_rates"] + ", " +
+                "`Vacation Days`=" + employee["vacation_days"] + ", " +
+                "`Paid To Date`=" + employee["paid_to_date"] + ", " +
+                "`Paid Last Year`=" + employee["paid_last_year"] + " where `Employee`.`idEmployee`=" + employee["pr_employee_id"]);
+        }
+
         await HR.close();
         res.end(JSON.stringify({success: true}))
     } catch (e) {
@@ -370,6 +372,17 @@ api.post("/employee/remove", async (req, res, next) => {
         await app.models.Employee.remove({_id: employeeId}).exec();
         await HR.close();
         res.end(JSON.stringify({success: true}));
+    } catch (e) {
+        console.log(e);
+        res.statusCode = 500;
+        res.end(JSON.stringify({error: {message: "Error"}}));
+    }
+});
+
+api.get('/employee/jobHistory', async (req, res, next) => {
+    try {
+        let jobHistory = await app.models.JobHistory.find({}).exec();
+        res.end(JSON.stringify(jobHistory));
     } catch (e) {
         console.log(e);
         res.statusCode = 500;
